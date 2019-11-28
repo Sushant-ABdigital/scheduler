@@ -3,67 +3,69 @@ import DayList from "./DayList";
 import Appointment from "components/Appointment";
 import Axios from "axios";
 import "components/Application.scss";
-
-// const days = [
-//   {
-//     id: 1,
-//     name: "Monday",
-//     spots: 2
-//   },
-//   {
-//     id: 2,
-//     name: "Tuesday",
-//     spots: 5
-//   },
-//   {
-//     id: 3,
-//     name: "Wednesday",
-//     spots: 0
-//   }
-// ];
-
-const appointments = [
-  {
-    id: 1,
-    time: "12pm"
-  },
-  {
-    id: 2,
-    time: "1pm",
-    interview: {
-      student: "Lydia Miller-Jones",
-      interviewer: {
-        id: 1,
-        name: "Sylvia Palmer",
-        avatar: "https://i.imgur.com/LpaY82x.png"
-      }
-    }
-  },
-  {
-    id: 3,
-    time: "2pm"
-  },
-  {
-    id: 4,
-    time: "3pm",
-    interview: {
-      student: "John Doe",
-      interviewer: {
-        id: 2,
-        name: "Tori Malcolm",
-        avatar: "https://i.imgur.com/Nmx0Qxo.png"
-      }
-    }
-  }
-];
+import { getAppointmentsForDay, getInterview, getInterviewersForDay } from "../helpers/selectors";
 
 export default function Application(props) {
-  const [day, setDay] = useState("Monday");
-  const [days, setDays] = useState([]);
-
+  const [state, setState] = useState({
+    day: "Monday",
+    days: [],
+    appointments: {},
+    interviewers: {}
+  });
+  //Helper function to update state
+  const setDay = day => setState({ ...state, day });
   useEffect(() => {
-    Axios.get("http://localhost:8001/api/days").then(res => setDays(res.data));
+    Promise.all([
+      Promise.resolve(Axios.get("http://localhost:8001/api/days")),
+      Promise.resolve(Axios.get("http://localhost:8001/api/appointments")),
+      Promise.resolve(Axios.get("http://localhost:8001/api/interviewers"))
+    ]).then(all => {
+      setState(prev => ({
+        ...prev,
+        days: all[0].data,
+        appointments: all[1].data,
+        interviewers: all[2].data
+      }));
+    });
   }, []);
+  //Creating function to book an Interview
+  function bookInterview(id, interview) {
+    console.log(id, interview);
+    const appointment = {
+      ...state.appointments[id],
+      interview: { ...interview }
+    };
+    const appointments = {
+      ...state.appointments,
+      [id]: appointment
+    };
+    setState({
+      ...state,
+      appointments
+    });
+  }
+
+  // Getting the interviewefor the day
+  const getInterviewerForTheDay = getInterviewersForDay(state, state.day);
+  // console.log("APPLICATION",getInterviewerForTheDay);
+
+  //Getting appointments for the day
+  const appointments = getAppointmentsForDay(state, state.day);
+  //Writing a function to modify the data and creating the component with desired props
+  const schedule = appointments.map(appointment => {
+    // console.log(appointment);
+    const interview = getInterview(state, appointment.interview);
+    return (
+      <Appointment
+        key={appointment.id}
+        id={appointment.id}
+        time={appointment.time}
+        interview={interview}
+        getInterviewerForTheDay={getInterviewerForTheDay}
+        bookInterview={bookInterview}
+      />
+    );
+  });
 
   return (
     <main className="layout">
@@ -71,15 +73,16 @@ export default function Application(props) {
         <img className="sidebar--centered" src="images/logo.png" alt="Interview Scheduler" />
         <hr className="sidebar__separator sidebar--centered" />
         <nav className="sidebar__menu">
-          <DayList days={days} day={day} setDay={setDay} />
+          <DayList days={state.days} day={state.day} setDay={setDay} />
         </nav>
-        <img className="sidebar__lhl sidebar--centered" src="images/lhl.png" alt="Lighthouse Labs" />
+        <img
+          className="sidebar__lhl sidebar--centered"
+          src="images/lhl.png"
+          alt="Lighthouse Labs"
+        />
       </section>
       <section className="schedule">
-        {/* Replace this with the schedule elements durint the "The Scheduler" activity. */}
-        {appointments.map(appointment => (
-          <Appointment key={appointment.id} {...appointment} />
-        ))}
+        {schedule}
         <Appointment id="last" time="5pm" />
       </section>
     </main>
