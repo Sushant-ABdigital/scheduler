@@ -1,10 +1,10 @@
-import { useState, useEffect, useReducer } from "react";
+import { useEffect, useReducer } from "react";
 import Axios from "axios";
 
 const SET_DAY = "SET_DAY";
 const SET_APPLICATION_DATA = "SET_APPLICATION_DATA";
 const SET_INTERVIEW = "SET_INTERVIEW";
-const DECREMENT_SPOTS = "DECREMENT_SPOTS";
+const SET_DAYS = "SET_DAYS";
 
 export default function useApplicationData() {
   const [state, dispatch] = useReducer(reducer, {
@@ -14,8 +14,6 @@ export default function useApplicationData() {
     interviewers: {}
   });
   //Helper function to update state
-  // const day = state.days.find(day => (day.name = state.day));
-  const setDay = day => dispatch({ type: SET_DAY, day });
 
   function reducer(state, action) {
     switch (action.type) {
@@ -31,16 +29,21 @@ export default function useApplicationData() {
           appointments: action.appointments,
           interviewers: action.interviewers
         };
-      case SET_INTERVIEW: {
+      case SET_INTERVIEW:
         return {
           ...state,
           appointments: action.appointments
         };
-      }
+      case SET_DAYS:
+        return {
+          ...state,
+          days: action.days
+        };
       default:
         throw new Error(`Tried to reduce with unsupported action type: ${action.type}`);
     }
   }
+  const setDay = day => dispatch({ type: SET_DAY, day });
 
   useEffect(() => {
     Promise.all([
@@ -56,7 +59,6 @@ export default function useApplicationData() {
       });
     });
   }, []);
-
   //Creating function to book an Interview
   function bookInterview(id, interview) {
     const appointment = {
@@ -67,15 +69,30 @@ export default function useApplicationData() {
       ...state.appointments,
       [id]: appointment
     };
-    const day = state.days.find(day => (day.name = state.day));
-    return Axios.put(`api/appointments/${id}`, { interview }).then(() => {
-      console.log("day is", day);
-      console.log("Just before then");
-      dispatch({
-        type: SET_INTERVIEW,
-        appointments
+    return Axios.put(`api/appointments/${id}`, { interview })
+      .then(
+        dispatch({
+          type: SET_INTERVIEW,
+          appointments
+        })
+      )
+      .then(() => {
+        //dayObj gives the object like [{...}], hence we are taking that object out to work on that
+        const dayObj = state.days.filter(day => day.name === state.day)[0];
+        const day = { ...dayObj, spots: dayObj.spots - 1 };
+        //days will be a new array with updated spot value
+        const days = state.days.map(d => {
+          if (d.name === day.name) {
+            return day;
+          }
+          return d;
+        });
+        dispatch({
+          type: SET_DAYS,
+          days: days
+        });
+        console.log("days", days);
       });
-    });
   }
 
   //Creating the function to Delete the appointment
@@ -88,12 +105,28 @@ export default function useApplicationData() {
       ...state.appointments,
       [id]: appointment
     };
-    return Axios.delete(`api/appointments/${id}`, { appointments }).then(
-      dispatch({
-        type: SET_INTERVIEW,
-        appointments
-      })
-    );
+    return Axios.delete(`api/appointments/${id}`, { appointments })
+      .then(
+        dispatch({
+          type: SET_INTERVIEW,
+          appointments
+        })
+      )
+      .then(() => {
+        const dayObj = state.days.filter(day => day.name === state.day)[0];
+        const day = { ...dayObj, spots: dayObj.spots + 1 };
+        //days will be a new array with updated spot value
+        const days = state.days.map(d => {
+          if (d.name === day.name) {
+            return day;
+          }
+          return d;
+        });
+        dispatch({
+          type: SET_DAYS,
+          days: days
+        });
+      });
   }
   return {
     state,
@@ -102,21 +135,3 @@ export default function useApplicationData() {
     cancelInterview
   };
 }
-
-// //Creating a function to update the state - spots
-// function decrementSpot() {
-//   console.log("state", state);
-//   let updatedDay = '';
-//   state.days.map(day => {
-//     if (day.name === state.day) {
-//       const newSpot = day.spots - 1;
-//       updatedDay = { ...day, spots: newSpot };
-//       return updatedDay;
-//     }
-//   });
-//   // if(id === )
-//   console.log(...state.days);
-//   return {...state.days, ...updatedDay}
-// }
-
-// console.log(decrementSpot());
