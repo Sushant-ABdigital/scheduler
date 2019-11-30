@@ -21,7 +21,7 @@ const ERROR_DELETE = "ERROR_DELETE";
 const DELETING = "DELETING";
 
 export default function Appointment(props) {
-  console.log("PROPS FROM INDEX",props);
+  // console.log("PROPS FROM INDEX",props);
   const { mode, transition, back } = useVisualMode(props.interview ? SHOW : EMPTY);
   function save(name, interviewer) {
     const interview = {
