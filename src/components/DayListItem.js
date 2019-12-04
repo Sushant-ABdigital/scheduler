@@ -24,6 +24,7 @@ export default function DayListItem(props) {
         props.setDay(props.name);
       }}
       className={listClass}
+      data-testid="day"
     >
       <h2 className="text--regular">{props.name}</h2>
       <h3 className="text--light">{spotRenderer(props.spots)}</h3>

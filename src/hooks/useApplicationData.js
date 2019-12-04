@@ -1,5 +1,6 @@
 import { useEffect, useReducer } from "react";
 import Axios from "axios";
+import { getAppointmentsForDay } from "../helpers/selectors";
 
 const SET_DAY = "SET_DAY";
 const SET_APPLICATION_DATA = "SET_APPLICATION_DATA";
@@ -47,9 +48,9 @@ export default function useApplicationData() {
 
   useEffect(() => {
     Promise.all([
-      Promise.resolve(Axios.get("http://localhost:8001/api/days")),
-      Promise.resolve(Axios.get("http://localhost:8001/api/appointments")),
-      Promise.resolve(Axios.get("http://localhost:8001/api/interviewers"))
+      Promise.resolve(Axios.get("/api/days")),
+      Promise.resolve(Axios.get("/api/appointments")),
+      Promise.resolve(Axios.get("/api/interviewers"))
     ]).then(all => {
       dispatch({
         type: SET_APPLICATION_DATA,
@@ -59,8 +60,38 @@ export default function useApplicationData() {
       });
     });
   }, []);
+
+  // //SCOKET
+  // useEffect(() => {
+  //   const socket = new WebSocket(process.env.REACT_APP_WEBSOCKET_URL);
+  //   socket.onopen = () => {
+  //     socket.send("Ping");
+  //   };
+  //   socket.onmessage = function(event) {
+  //     const data = JSON.parse(event.data);
+  //     const appointment = {
+  //       ...state.appointments[data.id],
+  //       interview: { ...data.interview }
+  //     };
+  //     const appointments = {
+  //       ...state.appointments,
+  //       [data.id]: appointment
+  //     };
+  //     // console.log("findDay", findDay);
+  //     //NEED TO WORK HERE - MENTOR HELP NEEDED!
+  //     // if (data.interview) {
+  //     //   // console.log("APPOINTMENTS", appointments);
+  //     //   dispatch({
+  //     //     type: data.type,
+  //     //     appointments
+  //     //   });
+  //     // }
+  //   };
+  // }, []);
+
   //Creating function to book an Interview
   function bookInterview(id, interview) {
+    // console.log("interview", interview);
     const appointment = {
       ...state.appointments[id],
       interview: { ...interview }
@@ -79,7 +110,10 @@ export default function useApplicationData() {
       .then(() => {
         //dayObj gives the object like [{...}], hence we are taking that object out to work on that
         const dayObj = state.days.filter(day => day.name === state.day)[0];
-        const day = { ...dayObj, spots: dayObj.spots - 1 };
+        let day = '';
+        if(dayObj.spots !== 0){
+          day = { ...dayObj, spots: dayObj.spots - 1 };
+        }
         //days will be a new array with updated spot value
         const days = state.days.map(d => {
           if (d.name === day.name) {
@@ -91,7 +125,6 @@ export default function useApplicationData() {
           type: SET_DAYS,
           days: days
         });
-        console.log("days", days);
       });
   }
 

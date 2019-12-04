@@ -13,8 +13,9 @@ export default function Application(props) {
   //Getting appointments for the day
   const appointments = getAppointmentsForDay(state, state.day);
   //Writing a function to modify the data and creating the component with desired props
+  // console.log("APPTMENTS",appointments);
   const schedule = appointments.map(appointment => {
-    // console.log(appointment);
+    // console.log("APPT",appointment);
     const interview = getInterview(state, appointment.interview);
     return (
       <Appointment
