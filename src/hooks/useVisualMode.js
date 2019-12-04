@@ -6,7 +6,6 @@ export default function useVisualMode(initial) {
 
   function transition(mode, replace = false) {
     if (replace === true) {
-      console.log("TRUE");
       history.pop();
       history.push(mode);
       setMode(history[history.length - 1]);
@@ -27,5 +26,5 @@ export default function useVisualMode(initial) {
     back
   };
 }
-//Ultimately useVisualMode returns the mode - that is starting point, a function called transition that 
-// will take care of showing/rendering different components and back function tht will just get back to // previous mode OR 'desired' [remeber form-saving-show and form-saving-error] previous mode. 
+//Ultimately useVisualMode returns the mode - that is starting point, a function called transition that
+// will take care of showing/rendering different components and back function tht will just get back to // previous mode OR 'desired' [remeber form-saving-show and form-saving-error] previous mode.
