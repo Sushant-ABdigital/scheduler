@@ -81,9 +81,7 @@ export default function useApplicationData() {
         //dayObj gives the object like [{...}], hence we are taking that object out to work on that
         const dayObj = state.days.filter(day => day.name === state.day)[0];
         let day = "";
-        if (dayObj.spots !== 0) {
-          day = { ...dayObj, spots: dayObj.spots - 1 };
-        }
+        day = { ...dayObj, spots: dayObj.spots - 1 };
         //days will be a new array with updated spot value
         const days = state.days.map(d => {
           if (d.name === day.name) {
@@ -96,6 +94,25 @@ export default function useApplicationData() {
           days: days
         });
       });
+  }
+
+  //SAVING ONLY
+  //Creating function to book an Interview
+  function bookInterviewWithoutSpot(id, interview) {
+    const appointment = {
+      ...state.appointments[id],
+      interview: { ...interview }
+    };
+    const appointments = {
+      ...state.appointments,
+      [id]: appointment
+    };
+    return Axios.put(`api/appointments/${id}`, { interview }).then(
+      dispatch({
+        type: SET_INTERVIEW,
+        appointments
+      })
+    );
   }
 
   //Creating the function to Delete the appointment
@@ -135,6 +152,7 @@ export default function useApplicationData() {
     state,
     setDay,
     bookInterview,
-    cancelInterview
+    cancelInterview,
+    bookInterviewWithoutSpot
   };
 }

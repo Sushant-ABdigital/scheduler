@@ -17,12 +17,15 @@ export default function Form(props) {
       return;
     }
     setError("");
-    console.log("from valid", interviewer);
     if(interviewer === null){
       setInterviewerError("Please select interviewer");
       return;
     }
-    props.onSave(name, interviewer);
+    if(props.onSave){
+      props.onSave(name, interviewer);
+    } else {
+      props.onSaveonly(name, interviewer);
+    }
   }
 
   function cancel() {

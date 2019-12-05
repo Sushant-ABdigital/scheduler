@@ -7,7 +7,13 @@ import "components/Application.scss";
 import { getAppointmentsForDay, getInterview, getInterviewersForDay } from "../helpers/selectors";
 
 export default function Application(props) {
-  const { state, setDay, bookInterview, cancelInterview } = useApplicationData();
+  const {
+    state,
+    setDay,
+    bookInterview,
+    cancelInterview,
+    bookInterviewWithoutSpot
+  } = useApplicationData();
   // Getting the interviewefor the day
   const getInterviewerForTheDay = getInterviewersForDay(state, state.day);
   //Getting appointments for the day
@@ -24,6 +30,7 @@ export default function Application(props) {
         getInterviewerForTheDay={getInterviewerForTheDay}
         bookInterview={bookInterview}
         cancelInterview={cancelInterview}
+        bookInterviewWithoutSpot={bookInterviewWithoutSpot}
       />
     );
   });
